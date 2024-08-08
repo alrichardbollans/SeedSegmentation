@@ -1,0 +1,1 @@
+Top level directory to store images and ground-truth annotations. To be split into training and hold out data.

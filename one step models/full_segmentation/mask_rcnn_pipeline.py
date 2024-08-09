@@ -8,6 +8,8 @@ from matplotlib import pyplot as plt
 from mrcnn import visualize
 from pkg_resources import resource_filename
 
+from myutils.annotation_processing import REPO_PATH
+
 _inputs_path = resource_filename(__name__, 'inputs')
 
 _temp_outputs_path = resource_filename(__name__, 'temp_outputs')
@@ -166,11 +168,11 @@ def training():
     config.display()
 
 
-    REPO_PATH = os.environ['KEWDROPBOXPATH']
+
     dataset_train = CocoLikeDataset()
-    dataset_train.load_data(os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'annotations',
+    dataset_train.load_data(os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'coco_polygons', 'annotations',
                                          'instances_default.json'),
-                            os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images'))
+                            os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images'))
     dataset_train.prepare()
     # Create model in training mode
     _data_path = os.environ['KEWDATAPATH']
@@ -209,17 +211,17 @@ def inference():
     print("Loading weights from ", model_path)
     model.load_weights(model_path, by_name=True)
 
-    REPO_PATH = os.environ['KEWDROPBOXPATH']
+
     dataset_val = CocoLikeDataset()
-    dataset_val.load_data(os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'annotations',
+    dataset_val.load_data(os.path.join(REPO_PATH,  'data', 'annotations', 'pablo_examples', 'coco_polygons', 'annotations',
                                          'instances_default.json'),
-                            os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images'))
+                            os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images'))
     dataset_val.prepare()
 
     dataset_train = CocoLikeDataset()
-    dataset_train.load_data(os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'annotations',
+    dataset_train.load_data(os.path.join(REPO_PATH,  'data', 'annotations', 'pablo_examples', 'coco_polygons', 'annotations',
                                          'instances_default.json'),
-                            os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images'))
+                            os.path.join(REPO_PATH,  'data', 'annotations', 'pablo_examples', 'images'))
     dataset_train.prepare()
 
 

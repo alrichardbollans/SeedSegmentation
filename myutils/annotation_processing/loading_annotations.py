@@ -1,12 +1,15 @@
 import os
-import cv2
+import shutil
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
+from ultralytics.data.converter import convert_coco
 
-REPO_PATH = os.environ['KEWDROPBOXPATH']
-import json
+_repo_path = os.environ['KEWSCRATCHPATH']
+REPO_PATH = os.path.join(_repo_path, 'SeedSegmentation')
+
 from pycocotools.coco import COCO
 
 basic_annotation_label = 'Seed'
@@ -131,10 +134,45 @@ def make_yaml_file_for_coco_data(train_images_path, train_annotations_path, val_
         f.write(stri)
 
 
+def convert_coco_to_yolo(img_dir, labels_dir,
+                         save_dir,
+                         use_segments=True,
+                         use_keypoints=False,
+                         cls91to80=True,
+                         lvis=False):
+    # This is just a wrapper for the ultralytics function to remember it exists
+    # Also moves images over to images/default
+    # https://docs.ultralytics.com/reference/data/converter/#ultralytics.data.converter.convert_coco
+    # Note it seems to change category ids <- -1
+    if os.path.exists(save_dir):
+        raise ValueError(f"the convert_coco function will make new dirs which I dont want. If this raises error then delete folder: {save_dir}")
+    convert_coco(labels_dir=labels_dir,
+                 save_dir=save_dir,
+                 use_segments=use_segments,
+                 use_keypoints=use_keypoints,
+                 cls91to80=cls91to80,
+                 lvis=lvis)
+    # Organise directories following: https://docs.ultralytics.com/yolov5/tutorials/train_custom_data/#22-create-labels
+    # i.e. labels located by replacing the last instance of /images/ in each image path with /labels/
+    os.makedirs(os.path.join(save_dir, 'images', 'default'), exist_ok=True)
+    files = os.listdir(img_dir)
+    for fname in files:
+        shutil.copy2(os.path.join(img_dir, fname), os.path.join(save_dir, 'images', 'default'))
+
+
+def make_yaml_file_for_yolo_data(train_images_path, val_images_path, classes, outfile: str):
+    # https://docs.ultralytics.com/yolov5/tutorials/train_custom_data/#22-create-labels
+
+    stri = f'train: "{train_images_path}"\nval: "{val_images_path}"\nnc: {len(classes)}\nnames: {classes}'
+    with open(outfile, 'w') as f:
+        f.write(stri)
+
+
 if __name__ == '__main__':
     human_coco = load_coco_annotations(
-        os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'annotations', 'instances_default.json'))
+        os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'coco_polygons', 'annotations',
+                     'instances_default.json'))
     updated_human_coco = convert_coco_labels_to_basic(human_coco)
 
     model_coco = load_coco_annotations(
-        os.path.join(REPO_PATH, 'orchid_tz', 'two step models', 'seed segmentation', 'example_outputs', 'coco_outputs', 'result.json'))
+        os.path.join(REPO_PATH, 'two step models', 'seed segmentation', 'example_outputs', 'coco_outputs', 'result.json'))

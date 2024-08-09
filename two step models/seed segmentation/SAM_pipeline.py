@@ -145,7 +145,7 @@ def get_polygons_from_SAM_mask(ann):
     return flat_list
 
 if __name__ == '__main__':
-    _repo_path = os.environ['KEWDROPBOXPATH']
+
     if not os.path.exists(os.path.join('example_outputs', 'coco_outputs')):
         os.mkdir(os.path.join('example_outputs', 'coco_outputs'))
 
@@ -155,9 +155,9 @@ if __name__ == '__main__':
                 'categories': [{'id': 1, 'name': 'Seed'}], 'images': [], 'annotations': []}
     img_id = 1
     ann_id = 1
-    for file_image in os.listdir(os.path.join(_repo_path, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images')):
+    for file_image in os.listdir(os.path.join(_repo_path, 'SeedSegmentation', 'data', 'annotations', 'pablo_examples', 'images')):
         n_seeds, annotations, image_shape = SAM_instance(
-            os.path.join(_repo_path, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images', file_image),
+            os.path.join(_repo_path, 'SeedSegmentation', 'data', 'annotations', 'pablo_examples', 'images', file_image),
             'example_outputs')
         out_dict['images'].append({'file_name': file_image, 'height': image_shape[0], 'width': image_shape[1], 'id': img_id})
 

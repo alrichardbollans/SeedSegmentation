@@ -1,12 +1,11 @@
 import ast
 import json
-
-import cv2
-from matplotlib import pyplot as plt
-from ultralytics import YOLO
 import os
 
-from myutils.annotation_processing import make_yaml_file_for_coco_data, REPO_PATH
+import cv2
+from ultralytics import YOLO
+
+from myutils.annotation_processing import REPO_PATH, convert_coco_to_yolo, make_yaml_file_for_yolo_data
 
 
 def yolo_instance(model, file_image: str, outdir: str):
@@ -35,67 +34,68 @@ def yolo_instance(model, file_image: str, outdir: str):
         number_seeds = 0
 
     # Plot
+    os.makedirs(os.path.join(outdir, 'annotated_images'), exist_ok=True)
     results[0].save(os.path.join(outdir, 'annotated_images', f"{os.path.basename(file_image)}_YOLO.png"))
 
     return number_seeds, ast.literal_eval(results[0].tojson()), img.shape
 
 
 def yolo_training_example():
-    REPO_PATH = os.environ['KEWDROPBOXPATH']
     _data_path = os.environ['KEWDATAPATH']
-    yolo_seg_pt = os.path.join(_data_path, 'model_checkpoints', 'YOLO', "yolov8n-seg.pt")  # maybe have to use withuout -seg?
+    yolo_seg_pt = os.path.join(_data_path, 'model_checkpoints', 'YOLO', "yolov8n-seg.pt")
     model = YOLO(yolo_seg_pt)  # load a pretrained model (recommended for training)
-    ### Try training with annotation
-    ## Seems to be reading them but not sure is retraining in the correct way
-    #  See: https://github.com/ultralytics/ultralytics/issues/2375
-    # This tutorialmight be helpful https://docs.ultralytics.com/yolov5/tutorials/train_custom_data/#13-prepare-dataset-for-yolov5
+
     # Train the model
-
-    # TODO: labels aren't being correctly assigned. See https://github.com/ultralytics/ultralytics/issues/9161#issuecomment-2275879820
-    # Could be related to mixed annotation formats.
-    # TODO: Save model after training
     # TODO: Add 'background# training images as in https://docs.ultralytics.com/yolov5/tutorials/tips_for_best_training_results/
-    coco_data = os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'annotations',
-                             'instances_default.json')
 
-    from ultralytics.data.converter import convert_coco
-    convert_coco(labels_dir=os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'annotations'),
-                 save_dir=os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'yolo_format'),
-                 use_segments=True)
+    # Need to convert the coco data into YOLO format. In theory ultralytics can handle the coco format but
+    # it wasn't working https://github.com/ultralytics/ultralytics/issues/9161#issuecomment-2275879820
+    # alternatively, CVAT yolo output doesn't seem to work either, so this is a work around
 
-    yaml_file = os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'dataset.yaml')
-    make_yaml_file_for_coco_data(os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images'), coco_data,
-                                 os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images'), coco_data, yaml_file)
+    # Will need to play around with this to also include testing examples etc..
+    convert_coco_to_yolo(os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images'),
+                         os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'coco_polygons', 'annotations'),
+                         os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'yolo_format'))
+    yaml_file = os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'yolo_format', 'dataset.yaml')
+    make_yaml_file_for_yolo_data(os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'yolo_format', 'images', 'default'),
+                                 os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'yolo_format', 'images', 'default'),
+                                 ['Viable', 'Non viable'], yaml_file)
+
+    # For some reason, seems to be downloading a new model
     results = model.train(
         data=yaml_file, single_cls=False,
-        epochs=5)
-    yolo_instance(model, os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images',
+        epochs=100)
+
+
+def load_trained_model(train_no, runs_dir: str = '/home/atp/runs'):
+    model = YOLO(os.path.join(runs_dir, 'segment', 'train' + str(train_no), 'weights', 'best.pt'))
+    yolo_instance(model, os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images',
                                       '394660_00.jpg'), os.path.join('example_outputs', 'trained_yolo_output'))
 
 
 def yolo_Evaluation_example():
-    ### Try evaluating from annotation
+    ### Try evaluating from annotations
     pass
 
 
-def saving_example():
-    _repo_path = os.environ['KEWDROPBOXPATH']
+def example_of_saving_annotations():
+    # TODO: Not currently useful
+    # TODO: will need to play with categories etc here and how results are saved..
+    # TODO: Need to fix so that works with load_coco_annotations, or set up separate evaluation for this
     # Load a model
     _data_path = os.environ['KEWDATAPATH']
     # See https://docs.ultralytics.com/tasks/segment/#models for different models
     yolo_seg_pt = os.path.join(_data_path, 'model_checkpoints', 'YOLO', "yolov8n-seg.pt")
     model = YOLO(yolo_seg_pt)  # load a pretrained model (recommended for training)
 
-    # TODO: will need to play with categories etc here and how results are saved..
-    # TODO: Need to fix so that works with load_coco_annotations, or set up separate evaluation for this
     out_dict = {'licences': [{'id': 0, 'name': '', 'url': ''}],
                 'info': {'contributor': 'YOLO', 'date_created': '', 'description': '', 'url': '', 'version': '', 'year': ''},
                 'categories': [{'id': 1, 'name': 'Seed'}], 'images': [], 'annotations': []}
     ann_id = 1
     img_id = 1
-    for file_image in os.listdir(os.path.join(_repo_path, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images')):
+    for file_image in os.listdir(os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images')):
         num_seeds, results, image_shape = yolo_instance(model,
-                                                        os.path.join(_repo_path, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images',
+                                                        os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images',
                                                                      file_image), 'example_outputs')
         out_dict['images'].append({'file_name': file_image, 'height': image_shape[0], 'width': image_shape[1], 'id': img_id})
         for r in results:
@@ -109,4 +109,5 @@ def saving_example():
 
 
 if __name__ == '__main__':
-    yolo_training_example()
+    # yolo_training_example()
+    load_trained_model(45)

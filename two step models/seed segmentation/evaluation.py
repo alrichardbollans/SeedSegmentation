@@ -145,9 +145,9 @@ def evaluate_annotations(human_annotations, model_annotations, img_file_name: st
 
 def SAM_example():
     human_coco = load_coco_annotations(
-        os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'annotations', 'instances_default.json'))
+        os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'coco_polygons', 'annotations', 'instances_default.json'))
     model_coco = load_coco_annotations(
-        os.path.join(REPO_PATH, 'orchid_tz', 'two step models', 'seed segmentation', 'example_outputs', 'coco_outputs', 'result.json'))
+        os.path.join(REPO_PATH, 'two step models', 'seed segmentation', 'example_outputs', 'coco_outputs', 'result.json'))
     updated_human_coco = convert_coco_labels_to_basic(human_coco)
     all_img_info = get_img_info_from_coco_annotations(model_coco)
 
@@ -163,8 +163,8 @@ def SAM_example():
     # TODO: make a note that coco IDs from different sets of annotations may not resolve to same image file. Maybe fix this
     ids = updated_human_coco.getImgIds()
     for i in ids:
-        draw_coco_annotation(updated_human_coco, ids[i - 1], os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images'),
-                             os.path.join(REPO_PATH, 'orchid_tz', 'two step models', 'seed segmentation', 'example_outputs'),
+        draw_coco_annotation(updated_human_coco, ids[i - 1], os.path.join(REPO_PATH, 'SeedSegmentation', 'data', 'annotations', 'pablo_examples', 'images'),
+                             os.path.join(REPO_PATH, 'two step models', 'seed segmentation', 'example_outputs'),
                              annotator='Pablo')
 
     ids = model_coco.getImgIds()
@@ -172,16 +172,16 @@ def SAM_example():
         img_info = model_coco.loadImgs(i)[0]
         img_filename = img_info['file_name']
         f1 = evaluated[img_filename]['f1_score']
-        draw_coco_annotation(model_coco, ids[i - 1], os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'images'),
-                             os.path.join(REPO_PATH, 'orchid_tz', 'two step models', 'seed segmentation', 'example_outputs'), f1=f1,
+        draw_coco_annotation(model_coco, ids[i - 1], os.path.join(REPO_PATH, 'SeedSegmentation', 'data', 'annotations', 'pablo_examples', 'images'),
+                             os.path.join(REPO_PATH, 'two step models', 'seed segmentation', 'example_outputs'), f1=f1,
                              annotator='SAM')
 
 
 def YOLO_example():
     human_coco = load_coco_annotations(
-        os.path.join(REPO_PATH, 'orchid_tz', 'data', 'annotations', 'pablo examples', 'coco_polygons', 'annotations', 'instances_default.json'))
+        os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'coco_polygons', 'annotations', 'instances_default.json'))
     model_coco = load_coco_annotations(
-        os.path.join(REPO_PATH, 'orchid_tz', 'two step models', 'seed segmentation', 'example_outputs', 'coco_outputs', 'yolo_results.json'))
+        os.path.join(REPO_PATH, 'two step models', 'seed segmentation', 'example_outputs', 'coco_outputs', 'yolo_results.json'))
     updated_human_coco = convert_coco_labels_to_basic(human_coco)
     all_img_info = get_img_info_from_coco_annotations(model_coco)
 

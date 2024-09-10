@@ -1,12 +1,17 @@
+# Note these aren't currently used.
 
 
-def masks_to_polygons():
+def masks_to_polygons(binary_mask):
+    """
+    Example of converting binary masks to polygons
+
+    :param binary_mask: Binary mask image where shapes are represented as white (255) regions on a black (0) background.
+
+    """
     import cv2
     import numpy as np
     import matplotlib.pyplot as plt
 
-    # Create a binary mask (for demonstration purposes)
-    binary_mask = np.zeros((100, 100), dtype=np.uint8)
     cv2.rectangle(binary_mask, (30, 30), (70, 70), 1, -1)  # Draw a filled rectangle
 
     # Find contours
@@ -39,7 +44,14 @@ def masks_to_polygons():
     for i, polygon in enumerate(polygons):
         print(f"Polygon {i + 1}: {polygon}")
 
-def polygons_to_masks():
+
+def polygons_to_masks(polygons):
+    """
+    Example of converting polygons to binary masks
+
+    :param polygons: A list of polygons, where each polygon is represented as a list of points (e.g., numpy array).
+
+    """
     import cv2
     import numpy as np
     import matplotlib.pyplot as plt
@@ -49,12 +61,6 @@ def polygons_to_masks():
 
     # Create an empty binary mask
     binary_mask = np.zeros((height, width), dtype=np.uint8)
-
-    # Define polygons (example polygons)
-    polygons = [
-        np.array([[30, 30], [70, 30], [70, 70], [30, 70]], dtype=np.int32),  # Rectangle
-        np.array([[10, 10], [20, 10], [15, 20]], dtype=np.int32)  # Triangle
-    ]
 
     # Fill the polygons on the binary mask
     for polygon in polygons:
@@ -66,6 +72,17 @@ def polygons_to_masks():
     plt.imshow(binary_mask, cmap='gray')
     plt.show()
 
+
 if __name__ == '__main__':
-    masks_to_polygons()
-    polygons_to_masks()
+    import numpy as np
+
+    # Create a binary mask (for demonstration purposes)
+    bin_mask = np.zeros((100, 100), dtype=np.uint8)
+    masks_to_polygons(bin_mask)
+
+    # Define polygons (example polygons)
+    example_polygons = [
+        np.array([[30, 30], [70, 30], [70, 70], [30, 70]], dtype=np.int32),  # Rectangle
+        np.array([[10, 10], [20, 10], [15, 20]], dtype=np.int32)  # Triangle
+    ]
+    polygons_to_masks(example_polygons)

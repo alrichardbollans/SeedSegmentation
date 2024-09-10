@@ -284,6 +284,7 @@ def inference():
 def main():
     # TODO: maybe need to add in background masks to this
     # TODO: It runs but needs checking, especially the dataset loading
+    # TODO: may be easier using detectron2 https://www.kaggle.com/code/myeongwonkim/mask-rcnn-training-using-detectron2
     # training()
     inference()
 

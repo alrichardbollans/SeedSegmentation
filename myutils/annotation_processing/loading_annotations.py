@@ -7,7 +7,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from ultralytics.data.converter import convert_coco
 
-_repo_path = os.environ['KEWSCRATCHPATH']
+_repo_path = os.environ['KEWSCRATCHPATH'] # Environment variable for where the SeedSegmentation directory is on your machine
 REPO_PATH = os.path.join(_repo_path, 'SeedSegmentation')
 
 from pycocotools.coco import COCO
@@ -16,12 +16,19 @@ basic_annotation_label = 'Seed'
 detailed_labels = ['Viable', 'Non viable']
 
 
-def load_coco_annotations(json_file: str):
+def load_coco_annotations(json_file: str) -> COCO:
+    """
+    This is just a wrapper for the pycocotools function to remember it exists
+
+
+    :param json_file: Path to the COCO annotation JSON file.
+    :return: An instance of the COCO class with the loaded annotations.
+    """
     coco = COCO(json_file)
 
     # Get category IDs and annotation IDs
-    catIds = coco.getCatIds()
-    annsIds = coco.getAnnIds()
+    # catIds = coco.getCatIds()
+    # annsIds = coco.getAnnIds()
 
     # for ann in annsIds:
     #     # Get individual masks
@@ -36,7 +43,18 @@ def load_coco_annotations(json_file: str):
     return coco
 
 
-def draw_coco_annotation(coco, img_id: int, img_dir: str, outpath: str, annotator: str = None, f1: float = None):
+def draw_coco_annotation(coco: COCO, img_id: int, img_dir: str, outpath: str, annotator: str = None, f1: float = None):
+    """
+    Draw and output a coco annotation
+
+    :param coco: COCO object containing the annotations and category information.
+    :param img_id: ID of the image within the COCO dataset.
+    :param img_dir: Directory path where images are stored.
+    :param outpath: Output path to save the annotated image.
+    :param annotator: Name of the annotator. Default is an empty string.
+    :param f1: F1 score to be displayed in the title. Default is None.
+    :return: None
+    """
     if annotator is None:
         annotator = ''
     from PIL import Image
@@ -100,6 +118,11 @@ def draw_coco_annotation(coco, img_id: int, img_dir: str, outpath: str, annotato
 
 
 def validate_annotation(annotation):
+    '''
+    To be implemented. Add checks to validate a given annotation.
+    :param annotation:
+    :return:
+    '''
     # Check label is known
     # Check image size is same as original
     # Check is mask or polygon, depending on what decide to use
@@ -110,7 +133,7 @@ def validate_annotation(annotation):
     pass
 
 
-def convert_coco_labels_to_basic(coco):
+def convert_coco_labels_to_basic(coco: COCO):
     '''
     Convert viable/nonviable annotations to 'seed' annotations
     :param coco:

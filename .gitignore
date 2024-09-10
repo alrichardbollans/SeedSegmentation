@@ -5,6 +5,7 @@
 #*.docx
 *.jpg
 /data/*/*
+/data/*
 *.png
 */gbif_secrets.json
 *.secrets

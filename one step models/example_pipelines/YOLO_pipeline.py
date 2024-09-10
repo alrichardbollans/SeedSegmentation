@@ -8,13 +8,21 @@ from ultralytics import YOLO
 from myutils.annotation_processing import REPO_PATH, convert_coco_to_yolo, make_yaml_file_for_yolo_data
 
 
-def yolo_instance(model, file_image: str, outdir: str):
+def yolo_instance_example(model, file_image: str, outdir: str):
+    """
+    An example of running a (pre)trained YOLO model on a single image.
+
+    :param model: The YOLO model instance used for segmentation.
+    :param file_image: Path to the input image file to be processed.
+    :param outdir: Directory where the annotated image and results will be saved.
+    :return: A tuple containing the number of detected objects, the JSON representation of the results, and the shape of the original image.
+    """
     img = cv2.imread(file_image)
 
     conf = 0.01  # Confidence threshold
 
     results = model.predict(img, conf=conf)
-    assert len(results) == 1  # Should only have a single result i.e. 1 image. If not, then need to change this
+    assert len(results) < 2   # Should only have a single result i.e. 1 image. If not, then need to change this
     classes = results[0].boxes.cls  # Probs object for classification outputs
 
     # Count detected objects
@@ -35,21 +43,26 @@ def yolo_instance(model, file_image: str, outdir: str):
 
     # Plot
     os.makedirs(os.path.join(outdir, 'annotated_images'), exist_ok=True)
-    results[0].save(os.path.join(outdir, 'annotated_images', f"{os.path.basename(file_image)}_YOLO.png"))
+    results[0].save(os.path.join(outdir, 'annotated_images', f"{os.path.basename(file_image)}_YOLO.png"), labels=True, font_size=20, pil=True)
 
     return number_seeds, ast.literal_eval(results[0].tojson()), img.shape
 
 
 def yolo_training_example():
+    """
+    Example of training a pretrained YOLO model on some of our data.
+    """
     _data_path = os.environ['KEWDATAPATH']
     yolo_seg_pt = os.path.join(_data_path, 'model_checkpoints', 'YOLO', "yolov8n-seg.pt")
     model = YOLO(yolo_seg_pt)  # load a pretrained model (recommended for training)
 
     # Train the model
     # TODO: Add 'background# training images as in https://docs.ultralytics.com/yolov5/tutorials/tips_for_best_training_results/
+    # TODO: properly split into train/validation
+    # TODO: Somewhere in the pipeline, draw some annotations to check they are loaded properly.
 
     # Need to convert the coco data into YOLO format. In theory ultralytics can handle the coco format but
-    # it wasn't working https://github.com/ultralytics/ultralytics/issues/9161#issuecomment-2275879820
+    # it wasn't working -- https://github.com/ultralytics/ultralytics/issues/9161#issuecomment-2275879820
     # alternatively, CVAT yolo output doesn't seem to work either, so this is a work around
 
     # Will need to play around with this to also include testing examples etc..
@@ -69,8 +82,8 @@ def yolo_training_example():
 
 def load_trained_model(train_no, runs_dir: str = '/home/atp/runs'):
     model = YOLO(os.path.join(runs_dir, 'segment', 'train' + str(train_no), 'weights', 'best.pt'))
-    yolo_instance(model, os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images',
-                                      '394660_00.jpg'), os.path.join('example_outputs', 'trained_yolo_output'))
+    return model
+
 
 
 def yolo_Evaluation_example():
@@ -94,8 +107,8 @@ def example_of_saving_annotations():
     ann_id = 1
     img_id = 1
     for file_image in os.listdir(os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images')):
-        num_seeds, results, image_shape = yolo_instance(model,
-                                                        os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images',
+        num_seeds, results, image_shape = yolo_instance_example(model,
+                                                                os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images',
                                                                      file_image), 'example_outputs')
         out_dict['images'].append({'file_name': file_image, 'height': image_shape[0], 'width': image_shape[1], 'id': img_id})
         for r in results:
@@ -110,4 +123,6 @@ def example_of_saving_annotations():
 
 if __name__ == '__main__':
     # yolo_training_example()
-    load_trained_model(45)
+    trained_model = load_trained_model(47)
+    yolo_instance_example(trained_model, os.path.join(REPO_PATH, 'data', 'annotations', 'pablo_examples', 'images',
+                                      'example_bubble.png'), os.path.join('example_outputs', 'trained_yolo_output'))
